@@ -19,6 +19,8 @@ class _RegisterPageState extends State<RegisterPage> {
   List<String> classSlta = ["10", "11", "12"];
   String selectedClass = "10";
 
+  final emailController = TextEditingController();
+
   onTapGender(Gender genderInput) {
     if (genderInput == Gender.lakilaki) {
       gender = "Laki-Laki";
@@ -51,7 +53,9 @@ class _RegisterPageState extends State<RegisterPage> {
           padding: const EdgeInsets.only(bottom: 20.0),
           child: ButtonLogin(
             onTap: () {
-              Navigator.of(context).pushNamed(MainPage.route);
+              print(emailController.text);
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil(MainPage.route, (context) => false);
             },
             backgroundColor: R.colors.primary,
             borderColor: R.colors.primary,
@@ -73,12 +77,13 @@ class _RegisterPageState extends State<RegisterPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               RegusterTextField(
-                hinttext: 'Nama Lengkap Anda',
-                title: 'Nama Lengkap',
+                controller: emailController,
+                hinttext: 'Email Anda',
+                title: 'Email',
               ),
               RegusterTextField(
-                hinttext: 'Email',
-                title: 'Email Anda',
+                hinttext: 'Nama Lengkap Anda',
+                title: 'Nama Lengkap',
               ),
               Text(
                 "Jenis Kelamin",
@@ -211,9 +216,11 @@ class RegusterTextField extends StatelessWidget {
     Key? key,
     required this.title,
     required this.hinttext,
+    this.controller,
   }) : super(key: key);
   final String title;
   final String hinttext;
+  final TextEditingController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -238,6 +245,7 @@ class RegusterTextField extends StatelessWidget {
             ),
           ),
           child: TextField(
+            controller: controller,
             decoration: InputDecoration(
                 border: InputBorder.none, //biar border hilang
                 hintText: hinttext,
