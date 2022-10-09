@@ -6,20 +6,20 @@ import 'package:latihan_soal/models/user_by_email.dart';
 import 'package:latihan_soal/repository/auth_api.dart';
 import 'package:latihan_soal/view/main_page.dart';
 
-import '../helpers/preference_helper.dart';
-import 'login_page.dart';
+import '../../../helpers/preference_helper.dart';
+import '../../login_page.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+class EditProfilePage extends StatefulWidget {
+  const EditProfilePage({Key? key}) : super(key: key);
   static String route = "register_page";
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 enum Gender { lakilaki, perempuan }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _EditProfilePageState extends State<EditProfilePage> {
   String gender = "Laki-Laki";
   List<String> classSlta = ["10", "11", "12"];
   String selectedClass = "10";
@@ -52,26 +52,22 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xfff0f3f5),
-      // resizeToAvoidBottomInset: false,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + 20),
-        child: AppBar(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(15.0),
-            bottomRight: Radius.circular(25.0),
-          )),
-          elevation: 0,
-          backgroundColor: Colors.white,
-          iconTheme: IconThemeData(color: Colors.black),
-          title: Text(
-            "Yuk isi data diri",
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
+      appBar: AppBar(
+        // shape: RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.only(
+        //   bottomLeft: Radius.circular(15.0),
+        //   bottomRight: Radius.circular(25.0),
+        // )),
+        elevation: 0,
+        // backgroundColor: Colors.white,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(
+          "Edit Akun",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
           ),
         ),
       ),
@@ -79,6 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Padding(
           padding: const EdgeInsets.only(bottom: 20.0),
           child: ButtonLogin(
+            radius: 8,
             onTap: () async {
               final json = {
                 "email": emailController.text,
@@ -113,7 +110,7 @@ class _RegisterPageState extends State<RegisterPage> {
             backgroundColor: R.colors.primary,
             borderColor: R.colors.primary,
             child: Text(
-              R.strings.daftar,
+              R.strings.perbaharuiAkun,
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
@@ -129,13 +126,13 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RegisterTextField(
+              EditProfileTextField(
                 controller: emailController,
                 hinttext: 'Email Anda',
                 title: 'Email',
                 enabled: false,
               ),
-              RegisterTextField(
+              EditProfileTextField(
                 hinttext: 'Nama Lengkap Anda',
                 title: 'Nama Lengkap',
                 controller: fullNameController,
@@ -253,7 +250,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 5),
-              RegisterTextField(
+              EditProfileTextField(
                 hinttext: 'Nama Sekolah',
                 title: 'Nama Sekolah',
                 controller: schoolController,
@@ -267,8 +264,8 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-class RegisterTextField extends StatelessWidget {
-  const RegisterTextField({
+class EditProfileTextField extends StatelessWidget {
+  const EditProfileTextField({
     Key? key,
     required this.title,
     required this.hinttext,
@@ -282,38 +279,31 @@ class RegisterTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: 5),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.white,
-            border: Border.all(
-              color: R.colors.greyBorder,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          child: TextField(
+          SizedBox(height: 5),
+          TextField(
             enabled: enabled,
             controller: controller,
             decoration: InputDecoration(
-                border: InputBorder.none, //biar border hilang
+                // border: InputBorder.none, //biar border hilang
                 hintText: hinttext,
                 hintStyle: TextStyle(
                   color: R.colors.greyHintText,
                 )),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

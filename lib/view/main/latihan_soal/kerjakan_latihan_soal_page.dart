@@ -4,9 +4,11 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:latihan_soal/constants/r.dart';
+import 'package:latihan_soal/helpers/user_email.dart';
 import 'package:latihan_soal/models/kerjakan_soal_list.dart';
 import 'package:latihan_soal/models/network_response.dart';
 import 'package:latihan_soal/repository/latihan_soal_api.dart';
+import 'package:latihan_soal/view/main/latihan_soal/result_page.dart';
 
 class KerjakanLatihanSoalPage extends StatefulWidget {
   const KerjakanLatihanSoalPage({
@@ -67,11 +69,39 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
                       if (_controller!.index == soalList!.data!.length - 1) {
                         final result = await showModalBottomSheet(
                             context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
                             builder: (context) {
                               return BottomsheetConfirmation();
                             });
                         if (result == true) {
                           print("kirim");
+                          List<String> answer = [];
+                          List<String> questionId = [];
+
+                          soalList!.data!.forEach((element) {
+                            questionId.add(element.bankQuestionId!);
+                            answer.add(element.studentAnswer!);
+                          });
+                          final payload = {
+                            "user_email": UserEmail.getUserEmail(),
+                            "exercise_id": widget.id,
+                            "bank_question_id": questionId,
+                            "student_answer": answer,
+                          };
+
+                          final result =
+                              await LatihanSoalApi().postStudentAnswer(payload);
+                          if (result.status == Status.success) {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (BuildContext context) {
+                              return ResultPage(exerciseId: widget.id);
+                            }));
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content:
+                                    Text("Submit Gagal, silahkan ulangi")));
+                          }
                         }
                       } else {
                         _controller!.animateTo(_controller!.index + 1);
@@ -199,7 +229,7 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
         padding: EdgeInsets.symmetric(horizontal: 20),
         margin: EdgeInsets.symmetric(vertical: 2),
         decoration: BoxDecoration(
-            color: answerCheck ? Colors.blue.withOpacity(0.4) : Colors.white,
+            color: answerCheck ? Colors.green.withOpacity(0.4) : Colors.white,
             border: Border.all(
               width: 1,
               color: Colors.grey,
@@ -245,44 +275,54 @@ class _BottomsheetConfirmationState extends State<BottomsheetConfirmation> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Container(
-            width: 100,
-            height: 5,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: R.colors.greySubtitle,
-            ),
+      child: Container(
+        padding: EdgeInsets.all(20),
+        decoration: new BoxDecoration(
+          color: Colors.white,
+          borderRadius: new BorderRadius.only(
+            topLeft: const Radius.circular(25.0),
+            topRight: const Radius.circular(25.0),
           ),
-          SizedBox(height: 15),
-          Image.asset(R.assets.icConfirmatio),
-          SizedBox(height: 15),
-          Text("Kumpulkan latihan soal sekarang?"),
-          Text("Boleh langsung kumpulin dong"),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                  child: Text("Nanti dulu"),
-                ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 100,
+              height: 5,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: R.colors.greySubtitle,
               ),
-              SizedBox(width: 15),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                  child: Text("Ya"),
+            ),
+            SizedBox(height: 15),
+            Image.asset(R.assets.icConfirmatio),
+            SizedBox(height: 15),
+            Text("Kumpulkan latihan soal sekarang?"),
+            Text("Boleh langsung kumpulin dong"),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: Text("Nanti dulu"),
+                  ),
                 ),
-              ),
-            ],
-          )
-        ],
+                SizedBox(width: 15),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: Text("Ya"),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
