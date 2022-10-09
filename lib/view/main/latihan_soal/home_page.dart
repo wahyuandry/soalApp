@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latihan_soal/constants/r.dart';
@@ -32,6 +33,46 @@ class _HomePageState extends State<HomePage> {
       bannerList = BannerList.fromJson(mapelResult.data!);
       setState(() {});
     }
+  }
+
+  setupFcm() async {
+// Get any messages which caused the application to open from
+    // a terminated state.
+    final tokenFcm = await FirebaseMessaging.instance.getToken();
+    print("tokenfcm: $tokenFcm");
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
+
+    // If the message also contains a data property with a "type" of "chat",
+    // navigate to a chat screen
+    // if (initialMessage != null) {
+    //   _handleMessage(initialMessage);
+    // }
+
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    print('User granted permission: ${settings.authorizationStatus}');
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen((event) {});
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      }
+    });
   }
 
   @override

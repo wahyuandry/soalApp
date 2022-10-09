@@ -12,12 +12,19 @@ import 'package:latihan_soal/view/register_page.dart';
 import '../repository/auth_api.dart';
 import '../models/user_by_email.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
   static const String route = "splash_screen";
 
   @override
-  Widget build(BuildContext context) {
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
     Timer(Duration(seconds: 5), () async {
       final user = UserEmail.getUserEmail();
 
@@ -35,7 +42,10 @@ class SplashScreen extends StatelessWidget {
         Navigator.of(context).pushReplacementNamed(LoginPage.route);
       }
     });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: R.colors.primary,
       body: Center(
