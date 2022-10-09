@@ -1,15 +1,47 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:latihan_soal/constants/r.dart';
+import 'package:latihan_soal/helpers/preference_helper.dart';
+import 'package:latihan_soal/models/network_response.dart';
+import 'package:latihan_soal/repository/auth_api.dart';
+import 'package:latihan_soal/models/user_by_email.dart';
+import 'package:latihan_soal/view/main/latihan_soal/home_page.dart';
+import 'package:latihan_soal/view/main_page.dart';
 import 'package:latihan_soal/view/register_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
   static const String route = "login_screen";
 
   @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  Future<UserCredential> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: R.colors.grey,
+      backgroundColor: Color(0xfff3f7f8),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
@@ -37,16 +69,37 @@ class LoginPage extends StatelessWidget {
             Text(
               R.strings.loginDescription,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 22,
+              style: GoogleFonts.poppins().copyWith(
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: R.colors.greySubtitle,
               ),
             ),
             Spacer(),
             ButtonLogin(
-              onTap: () {
-                Navigator.of(context).pushNamed(RegisterPage.route);
+              onTap: () async {
+                await signInWithGoogle();
+
+                final user = FirebaseAuth.instance.currentUser;
+                if (user != null) {
+                  final dataUser = await AuthApi().getUserByEmail();
+                  if (dataUser.status == Status.success) {
+                    final data = UserByEmail.fromJson(dataUser.data!);
+                    if (data.status == 1) {
+                      await PreferenceHelper().setUserData(data.data!);
+                      Navigator.of(context).pushNamed(MainPage.route);
+                    } else {
+                      Navigator.of(context).pushNamed(RegisterPage.route);
+                    }
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Gagal Masuk"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
               backgroundColor: Colors.white,
               borderColor: R.colors.primary,
@@ -58,7 +111,7 @@ class LoginPage extends StatelessWidget {
                   Text(
                     R.strings.loginWithGoogle,
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: R.colors.blackLogin,
                     ),
@@ -78,7 +131,7 @@ class LoginPage extends StatelessWidget {
                   Text(
                     R.strings.loginWithApple,
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: Colors.white,
                     ),
