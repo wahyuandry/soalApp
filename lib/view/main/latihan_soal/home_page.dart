@@ -2,9 +2,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latihan_soal/constants/r.dart';
+import 'package:latihan_soal/helpers/preference_helper.dart';
 import 'package:latihan_soal/models/banner_list.dart';
 import 'package:latihan_soal/models/mapel_list.dart';
 import 'package:latihan_soal/models/network_response.dart';
+import 'package:latihan_soal/models/user_by_email.dart';
 import 'package:latihan_soal/repository/latihan_soal_api.dart';
 import 'package:latihan_soal/view/main/latihan_soal/mapel_page.dart';
 import 'package:latihan_soal/view/main/latihan_soal/paket_soal_page.dart';
@@ -19,18 +21,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   MapelList? mapelList;
   getMapel() async {
-    final mapelResult = await LatihanSoalApi().getMapel();
-    if (mapelResult.status == Status.success) {
-      mapelList = MapelList.fromJson(mapelResult.data!);
+    final mapelREsult = await LatihanSoalApi().getMapel();
+    if (mapelREsult.status == Status.success) {
+      mapelList = MapelList.fromJson(mapelREsult.data!);
       setState(() {});
     }
   }
 
   BannerList? bannerList;
   getBanner() async {
-    final mapelResult = await LatihanSoalApi().getBanner();
-    if (mapelResult.status == Status.success) {
-      bannerList = BannerList.fromJson(mapelResult.data!);
+    final banner = await LatihanSoalApi().getBanner();
+    if (banner.status == Status.success) {
+      bannerList = BannerList.fromJson(banner.data!);
       setState(() {});
     }
   }
@@ -75,12 +77,20 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  UserData? dataUser;
+  Future getUserDAta() async {
+    dataUser = await PreferenceHelper().getUserData();
+    setState(() {});
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getMapel();
     getBanner();
+    setupFcm();
+    getUserDAta();
   }
 
   @override
@@ -98,7 +108,9 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20,
+                    ),
                     child: Text(
                       "Terbaru",
                       style: TextStyle(
@@ -124,13 +136,14 @@ class _HomePageState extends State<HomePage> {
                             itemBuilder: ((context, index) {
                               final currentBanner = bannerList!.data![index];
                               return Padding(
-                                  padding: const EdgeInsets.only(left: 20.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      currentBanner.eventImage!,
-                                    ),
-                                  ));
+                                padding: const EdgeInsets.only(left: 20.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    currentBanner.eventImage!,
+                                  ),
+                                ),
+                              );
                             }),
                           ),
                         ),
@@ -145,6 +158,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Container _buildHomeListMapel(MapelList? list) {
+    // print("list!.data.length");
+    // print(list?.data!.length);
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20, vertical: 21),
       child: Column(
@@ -161,23 +176,19 @@ class _HomePageState extends State<HomePage> {
               Spacer(),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (BuildContext context) {
-                        return MapelPage(mapel: mapelList!);
-                      },
-                    ),
-                  );
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (BuildContext context) {
+                    return MapelPage(mapel: mapelList!);
+                  }));
                 },
                 child: Text(
                   "Lihat Semua",
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                    color: R.colors.primary,
-                  ),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: R.colors.primary),
                 ),
-              ),
+              )
             ],
           ),
           list == null
@@ -198,8 +209,8 @@ class _HomePageState extends State<HomePage> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: ((context) =>
-                                PaketSoalPage(id: currentMapel.courseId!)),
+                            builder: (context) =>
+                                PaketSoalPage(id: currentMapel.courseId!),
                           ),
                         );
                       },
@@ -210,7 +221,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   },
-                ),
+                )
         ],
       ),
     );
@@ -220,33 +231,26 @@ class _HomePageState extends State<HomePage> {
     return Container(
       margin: const EdgeInsets.symmetric(
         horizontal: 20.0,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20.0,
-        vertical: 15,
+        // vertical: 15,
       ),
       decoration: BoxDecoration(
-        color: R.colors.primary,
-        borderRadius: BorderRadius.circular(20),
-      ),
+          color: R.colors.primary, borderRadius: BorderRadius.circular(20)),
       height: 147,
       width: double.infinity,
       child: Stack(
         children: [
           Container(
             width: MediaQuery.of(context).size.width * 0.5,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 15,
-              ),
-              child: Text(
-                "Mau kerjain latihan soal apa hari ini?",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 15,
+            ),
+            child: Text(
+              "Mau kerjain latihan soal apa hari ini?",
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -276,16 +280,15 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Hi, ",
-                  style: GoogleFonts.poppins().copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  "Hi, " + (dataUser?.userName ?? "Nama User"),
+                  style: GoogleFonts.poppins()
+                      .copyWith(fontSize: 12, fontWeight: FontWeight.w700),
                 ),
                 Text(
-                  "Selamat Datang",
+                  "Selamat datang",
                   style: GoogleFonts.poppins().copyWith(
                     fontSize: 12,
+                    // fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
@@ -318,65 +321,79 @@ class MapelWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
+          color: Colors.white, borderRadius: BorderRadius.circular(10)),
       margin: EdgeInsets.only(bottom: 10),
       padding: EdgeInsets.symmetric(horizontal: 18, vertical: 21),
-      child: Row(
-        children: [
-          Container(
-            height: 53,
-            width: 53,
-            padding: EdgeInsets.all(13),
-            child: Image.asset(R.assets.icAtom),
-          ),
-          SizedBox(width: 6),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+      child: Row(children: [
+        Container(
+          height: 53,
+          width: 53,
+          padding: EdgeInsets.all(13),
+          decoration: BoxDecoration(
+              color: R.colors.grey, borderRadius: BorderRadius.circular(10)),
+          child: Image.asset(R.assets.icAtom),
+        ),
+        SizedBox(
+          width: 6,
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
-                Text(
-                  "$totalDone/$totalPacket Paket latihan soal",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w300,
+              ),
+              Text(
+                "$totalDone/$totalPacket Paket latihan soal",
+                style: TextStyle(
+                    fontWeight: FontWeight.w500,
                     fontSize: 12,
-                    color: R.colors.greySubtitle,
-                  ),
-                ),
-                SizedBox(height: 5),
-                Stack(
-                  children: [
-                    Container(
-                      height: 10,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
+                    color: R.colors.greySubtitleHome),
+              ),
+              SizedBox(height: 5),
+              Stack(
+                children: [
+                  Container(
+                    height: 5,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
                         color: R.colors.grey,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: totalDone!,
+                        child: Container(
+                          height: 5,
+                          // width: MediaQuery.of(context).size.width * 0.4,
+                          decoration: BoxDecoration(
+                              color: R.colors.primary,
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
                       ),
-                    ),
-                    Container(
-                      height: 10,
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      decoration: BoxDecoration(
-                        color: R.colors.primary,
-                        borderRadius: BorderRadius.circular(10),
+                      Expanded(
+                        flex: totalPacket! - totalDone!,
+                        child: Container(
+                            // height: 5,
+                            // width: MediaQuery.of(context).size.width * 0.4,
+                            // decoration: BoxDecoration(
+                            //     color: R.colors.primary,
+                            //     borderRadius: BorderRadius.circular(10)),
+                            ),
                       ),
-                    )
-                  ],
-                ),
-              ],
-            ),
+                    ],
+                  ),
+                ],
+              )
+            ],
           ),
-        ],
-      ),
+        )
+      ]),
     );
   }
 }

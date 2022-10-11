@@ -1,44 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:latihan_soal/constants/r.dart';
+import 'package:latihan_soal/helpers/preference_helper.dart';
 import 'package:latihan_soal/helpers/user_email.dart';
 import 'package:latihan_soal/models/network_response.dart';
 import 'package:latihan_soal/models/user_by_email.dart';
 import 'package:latihan_soal/repository/auth_api.dart';
+import 'package:latihan_soal/view/login_page.dart';
 import 'package:latihan_soal/view/main_page.dart';
-
-import '../helpers/preference_helper.dart';
-import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
   static String route = "register_page";
-
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-enum Gender { lakilaki, perempuan }
+enum Gender { lakiLaki, perempuan }
 
 class _RegisterPageState extends State<RegisterPage> {
-  String gender = "Laki-Laki";
   List<String> classSlta = ["10", "11", "12"];
-  String selectedClass = "10";
 
+  String gender = "Laki-laki";
+  String selectedClass = "10";
   final emailController = TextEditingController();
-  final schoolController = TextEditingController();
+  final schoolNameController = TextEditingController();
   final fullNameController = TextEditingController();
 
   onTapGender(Gender genderInput) {
-    if (genderInput == Gender.lakilaki) {
-      gender = "Laki-Laki";
+    if (genderInput == Gender.lakiLaki) {
+      gender = "Laki-laki";
     } else {
       gender = "Perempuan";
     }
-
     setState(() {});
   }
 
-  initDataUser() {
+  initDataUSer() {
     emailController.text = UserEmail.getUserEmail()!;
     fullNameController.text = UserEmail.getUserDisplayName()!;
     setState(() {});
@@ -46,32 +43,28 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void initState() {
-    initDataUser();
+    super.initState();
+    initDataUSer();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xfff0f3f5),
-      // resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight + 20),
         child: AppBar(
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(15.0),
-            bottomRight: Radius.circular(25.0),
-          )),
+                  bottomLeft: Radius.circular(25.0),
+                  bottomRight: Radius.circular(25.0))),
           elevation: 0,
           backgroundColor: Colors.white,
           iconTheme: IconThemeData(color: Colors.black),
           title: Text(
-            "Yuk isi data diri",
+            "Yuk isi data diri!",
             style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-            ),
+                color: Colors.black, fontWeight: FontWeight.w700, fontSize: 18),
           ),
         ),
       ),
@@ -83,11 +76,12 @@ class _RegisterPageState extends State<RegisterPage> {
               final json = {
                 "email": emailController.text,
                 "nama_lengkap": fullNameController.text,
-                "nama_sekolah": schoolController.text,
+                "nama_sekolah": schoolNameController.text,
                 "kelas": selectedClass,
                 "gender": gender,
                 "foto": UserEmail.getUserPhotoUrl(),
               };
+              print(json);
               final result = await AuthApi().postRegister(json);
               if (result.status == Status.success) {
                 final registerResult = UserByEmail.fromJson(result.data!);
@@ -131,15 +125,16 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               RegisterTextField(
                 controller: emailController,
-                hinttext: 'Email Anda',
-                title: 'Email',
+                hintText: 'Email Anda',
+                title: "Email",
                 enabled: false,
               ),
               RegisterTextField(
-                hinttext: 'Nama Lengkap Anda',
-                title: 'Nama Lengkap',
+                hintText: 'Nama Lengkap Anda',
+                title: "Nama Lengkap",
                 controller: fullNameController,
               ),
+              SizedBox(height: 5),
               Text(
                 "Jenis Kelamin",
                 style: TextStyle(
@@ -156,25 +151,25 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
-                          primary: gender == "Laki-Laki"
-                              ? R.colors.primary
-                              : Colors.white,
+                          primary:
+                              gender.toLowerCase() == "Laki-laki".toLowerCase()
+                                  ? R.colors.primary
+                                  : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              width: 1,
-                              color: R.colors.greyBorder,
-                            ),
+                                width: 1, color: R.colors.greyBorder),
                           ),
                         ),
                         onPressed: () {
-                          onTapGender(Gender.lakilaki);
+                          onTapGender(Gender.lakiLaki);
                         },
                         child: Text(
-                          "Laki-Laki",
+                          "Laki-laki",
                           style: TextStyle(
                             fontSize: 14,
-                            color: gender == "Laki-Laki"
+                            color: gender.toLowerCase() ==
+                                    "Laki-laki".toLowerCase()
                                 ? Colors.white
                                 : Color(0xff282828),
                           ),
@@ -194,9 +189,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              width: 1,
-                              color: R.colors.greyBorder,
-                            ),
+                                width: 1, color: R.colors.greyBorder),
                           ),
                         ),
                         onPressed: () {
@@ -231,9 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   color: Colors.white,
-                  border: Border.all(
-                    color: R.colors.greyBorder,
-                  ),
+                  border: Border.all(color: R.colors.greyBorder),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -246,7 +237,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           )
                           .toList(),
-                      onChanged: (val) {
+                      onChanged: (String? val) {
                         selectedClass = val!;
                         setState(() {});
                       }),
@@ -254,11 +245,11 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               SizedBox(height: 5),
               RegisterTextField(
-                hinttext: 'Nama Sekolah',
-                title: 'Nama Sekolah',
-                controller: schoolController,
+                hintText: 'Nama Sekolah',
+                title: "Nama Sekolah",
+                controller: schoolNameController,
               ),
-              // Spacer(), tidak bisa pakai spacer jika pakai SingleChildScrollView
+              // Spacer(),
             ],
           ),
         ),
@@ -271,12 +262,12 @@ class RegisterTextField extends StatelessWidget {
   const RegisterTextField({
     Key? key,
     required this.title,
-    required this.hinttext,
+    required this.hintText,
     this.controller,
     this.enabled = true,
   }) : super(key: key);
   final String title;
-  final String hinttext;
+  final String hintText;
   final bool enabled;
   final TextEditingController? controller;
 
@@ -298,16 +289,14 @@ class RegisterTextField extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             color: Colors.white,
-            border: Border.all(
-              color: R.colors.greyBorder,
-            ),
+            border: Border.all(color: R.colors.greyBorder),
           ),
           child: TextField(
             enabled: enabled,
             controller: controller,
             decoration: InputDecoration(
-                border: InputBorder.none, //biar border hilang
-                hintText: hinttext,
+                border: InputBorder.none,
+                hintText: hintText,
                 hintStyle: TextStyle(
                   color: R.colors.greyHintText,
                 )),

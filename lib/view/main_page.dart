@@ -25,21 +25,19 @@ class _MainPageState extends State<MainPage> {
           width: 30,
         ),
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ChatPage(),
-            ),
-          );
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => ChatPage()));
         },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomNavigation(),
       body: PageView(
         controller: _pc,
-        physics: NeverScrollableScrollPhysics(), //matiin swipe
+        physics: NeverScrollableScrollPhysics(),
         children: [
-          HomePage(),
-          ProfilePage(),
+          HomePage(), //0
+          // ChatPage(),
+          ProfilePage(), //1
         ],
       ),
     );
@@ -47,21 +45,17 @@ class _MainPageState extends State<MainPage> {
 
   Container _buildBottomNavigation() {
     return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
             offset: Offset(0, 4),
             blurRadius: 20,
-            color: Colors.black.withOpacity(0.06),
-          ),
-        ],
-      ),
+            color: Colors.black.withOpacity(0.06))
+      ]),
       child: BottomAppBar(
-        color: Colors.white,
-        child: Container(
-          height: 60,
-          child: Row(
-            children: [
+          color: Colors.white,
+          child: Container(
+            height: 60,
+            child: Row(children: [
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 8.0),
@@ -72,12 +66,15 @@ class _MainPageState extends State<MainPage> {
                         _pc.animateToPage(index,
                             duration: Duration(milliseconds: 500),
                             curve: Curves.bounceInOut);
+
+                        setState(() {});
                       },
                       child: Column(
                         children: [
                           Image.asset(
                             R.assets.icHome,
                             height: 20,
+                            color: index == 0 ? null : Colors.grey,
                           ),
                           Text("Home"),
                         ],
@@ -95,10 +92,10 @@ class _MainPageState extends State<MainPage> {
                         children: [
                           Opacity(
                             opacity: 0,
-                          ),
-                          Image.asset(
-                            R.assets.icHome,
-                            height: 20,
+                            child: Image.asset(
+                              R.assets.icHome,
+                              height: 20,
+                            ),
                           ),
                           Text("Diskusi"),
                         ],
@@ -113,25 +110,32 @@ class _MainPageState extends State<MainPage> {
                   child: Material(
                     child: InkWell(
                       onTap: () {
+                        print("profile");
                         index = 1;
-                        _pc.animateToPage(index,
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.bounceInOut);
+                        _pc.animateToPage(
+                          index,
+                          duration: Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                        );
+
+                        setState(() {});
                       },
                       child: Column(
                         children: [
-                          Icon(Icons.person),
+                          Image.asset(
+                            "assets/ic_profile.png",
+                            height: 20,
+                            color: index == 1 ? null : Colors.grey,
+                          ),
                           Text("Profile"),
                         ],
                       ),
                     ),
                   ),
                 ),
-              )
-            ],
-          ),
-        ),
-      ),
+              ),
+            ]),
+          )),
     );
   }
 }

@@ -17,6 +17,7 @@ class LatihanSoalApi {
     );
 
     final dio = Dio(options);
+
     return dio;
   }
 
@@ -76,7 +77,7 @@ class LatihanSoalApi {
     final result = await _getRequest(
       endpoint: ApiUrl.banner,
       // param: {
-      //   "major_name": "IPA",
+      //   "limit": "IPA",
       // },
     );
     return result;

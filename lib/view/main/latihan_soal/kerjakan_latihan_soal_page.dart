@@ -11,12 +11,8 @@ import 'package:latihan_soal/repository/latihan_soal_api.dart';
 import 'package:latihan_soal/view/main/latihan_soal/result_page.dart';
 
 class KerjakanLatihanSoalPage extends StatefulWidget {
-  const KerjakanLatihanSoalPage({
-    Key? key,
-    required this.id,
-  }) : super(key: key);
+  const KerjakanLatihanSoalPage({Key? key, required this.id}) : super(key: key);
   final String id;
-
   @override
   State<KerjakanLatihanSoalPage> createState() =>
       _KerjakanLatihanSoalPageState();
@@ -48,23 +44,22 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Latihan Soal"),
-      ),
-      //tombol selanjutnya/submit
+      appBar: AppBar(title: Text("Latihan Soal")),
+      // tombol selanjutnya atau submit
       bottomNavigationBar: _controller == null
-          ? SizedBox(height: 0)
+          ? SizedBox(
+              height: 0,
+            )
           : Container(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      primary: R.colors.primary,
-                      fixedSize: Size(153, 33),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
+                        primary: R.colors.primary,
+                        fixedSize: Size(153, 33),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
                     onPressed: () async {
                       if (_controller!.index == soalList!.data!.length - 1) {
                         final result = await showModalBottomSheet(
@@ -74,8 +69,9 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
                             builder: (context) {
                               return BottomsheetConfirmation();
                             });
+                        print(result);
                         if (result == true) {
-                          print("kirim");
+                          print("kirim ke backend");
                           List<String> answer = [];
                           List<String> questionId = [];
 
@@ -83,24 +79,28 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
                             questionId.add(element.bankQuestionId!);
                             answer.add(element.studentAnswer!);
                           });
+
                           final payload = {
                             "user_email": UserEmail.getUserEmail(),
                             "exercise_id": widget.id,
                             "bank_question_id": questionId,
                             "student_answer": answer,
                           };
+                          print(payload);
 
                           final result =
                               await LatihanSoalApi().postStudentAnswer(payload);
                           if (result.status == Status.success) {
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) {
-                              return ResultPage(exerciseId: widget.id);
+                              return ResultPage(
+                                exerciseId: widget.id,
+                              );
                             }));
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content:
-                                    Text("Submit Gagal, silahkan ulangi")));
+                                    Text("Submit gagal. silahkan ulangi")));
                           }
                         }
                       } else {
@@ -111,11 +111,9 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
                       _controller?.index == soalList!.data!.length - 1
                           ? "Kumpulin"
                           : "Selanjutnya",
-                      style: TextStyle(
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(fontSize: 12),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
@@ -125,7 +123,7 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
             )
           : Column(
               children: [
-                //tabBar nomor soal
+                // TabBar no soal
                 Container(
                   child: TabBar(
                     controller: _controller,
@@ -140,11 +138,11 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
                     ),
                   ),
                 ),
-                //tabBar soal
+                // TabBarView soal dan pilihan jawaban
                 Expanded(
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    child: TabBarView(
+                    child: Container(
+                  padding: EdgeInsets.all(8),
+                  child: TabBarView(
                       controller: _controller,
                       children: List.generate(
                         soalList!.data!.length,
@@ -161,15 +159,26 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
                               ),
                               if (soalList!.data![index].questionTitle != null)
                                 Html(
-                                    data: soalList!.data![index].questionTitle!,
-                                    style: {
-                                      "body": Style(
-                                        padding: EdgeInsets.zero,
-                                      ),
-                                      "p": Style(
-                                        fontSize: FontSize(12),
-                                      )
-                                    }),
+                                  data: soalList!.data![index].questionTitle!,
+                                  customRender: {
+                                    "table": (context, child) {
+                                      return SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child:
+                                            (context.tree as TableLayoutElement)
+                                                .toWidget(context),
+                                      );
+                                    }
+                                  },
+                                  style: {
+                                    "body": Style(
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    "p": Style(
+                                      fontSize: FontSize(12),
+                                    )
+                                  },
+                                ),
                               if (soalList!.data![index].questionTitleImg !=
                                   null)
                                 Image.network(
@@ -207,10 +216,8 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
                             ],
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
+                      ).toList()),
+                ))
               ],
             ),
     );
@@ -219,17 +226,20 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
   Widget _buildOption(
       String option, String? answer, String? answerImg, int index) {
     final answerCheck = soalList!.data![index].studentAnswer == option;
-
     return GestureDetector(
       onTap: () {
         soalList!.data![index].studentAnswer = option;
         setState(() {});
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        margin: EdgeInsets.symmetric(vertical: 2),
+        padding: EdgeInsets.symmetric(
+          horizontal: 20,
+        ),
+        margin: EdgeInsets.symmetric(
+          vertical: 2,
+        ),
         decoration: BoxDecoration(
-            color: answerCheck ? Colors.green.withOpacity(0.4) : Colors.white,
+            color: answerCheck ? Colors.blue.withOpacity(0.4) : Colors.white,
             border: Border.all(
               width: 1,
               color: Colors.grey,
@@ -245,14 +255,15 @@ class _KerjakanLatihanSoalPageState extends State<KerjakanLatihanSoalPage>
             ),
             if (answer != null)
               Expanded(
-                  child: Html(
-                data: answer,
-                style: {
-                  "p": Style(
-                    color: answerCheck ? Colors.white : Colors.black,
-                  )
-                },
-              )),
+                child: Html(
+                  data: answer,
+                  style: {
+                    "p": Style(
+                      color: answerCheck ? Colors.white : Colors.black,
+                    ),
+                  },
+                ),
+              ),
             if (answerImg != null) Expanded(child: Image.network(answerImg)),
           ],
         ),
@@ -284,45 +295,38 @@ class _BottomsheetConfirmationState extends State<BottomsheetConfirmation> {
             topRight: const Radius.circular(25.0),
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 100,
-              height: 5,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: R.colors.greySubtitle,
-              ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 100,
+            height: 5,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: R.colors.greySubtitle,
             ),
-            SizedBox(height: 15),
-            Image.asset(R.assets.icConfirmatio),
-            SizedBox(height: 15),
-            Text("Kumpulkan latihan soal sekarang?"),
-            Text("Boleh langsung kumpulin dong"),
-            Row(
-              children: [
-                Expanded(
+          ),
+          SizedBox(height: 15),
+          Image.asset(R.assets.icConfirmatio),
+          SizedBox(height: 15),
+          Text("Kumpulkan latihan soal sekarang?"),
+          Text("Boleh langsung kumpulin dong"),
+          Row(
+            children: [
+              Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                    },
-                    child: Text("Nanti dulu"),
-                  ),
-                ),
-                SizedBox(width: 15),
-                Expanded(
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                      child: Text("Nanti Dulu"))),
+              SizedBox(width: 15),
+              Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                    child: Text("Ya"),
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                      child: Text("Ya"))),
+            ],
+          )
+        ]),
       ),
     );
   }

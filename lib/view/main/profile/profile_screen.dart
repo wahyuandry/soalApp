@@ -35,20 +35,29 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Container(),
         title: Text("Akun Saya"),
+        centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context)
+            onPressed: () async {
+              final result = await Navigator.of(context)
                   .push(MaterialPageRoute(builder: (BuildContext context) {
                 return EditProfilePage();
               }));
+              print("result");
+              print(result);
+              if (result == true) {
+                getUserData();
+              }
             },
             child: Text(
               "Edit",
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(
+                color: Colors.white,
+              ),
             ),
-          ),
+          )
         ],
       ),
       body: user == null
@@ -63,44 +72,44 @@ class _ProfilePageState extends State<ProfilePage> {
                     left: 15,
                   ),
                   decoration: BoxDecoration(
-                      color: R.colors.primary,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(9),
-                        bottomRight: Radius.circular(9),
-                      )),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user!.userName!,
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            Text(
-                              user!.userAsalSekolah!,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Image.asset(
-                        R.assets.imgUser,
-                        width: 50,
-                        height: 50,
-                      ),
-                    ],
+                    color: R.colors.primary,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(9),
+                      bottomRight: Radius.circular(9),
+                    ),
                   ),
+                  child: Row(children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user!.userName!,
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          Text(
+                            user!.userAsalSekolah!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Image.asset(
+                      R.assets.imgUser,
+                      width: 50,
+                      height: 50,
+                    ),
+                  ]),
                 ),
+                // SizedBox(height: 15),
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -108,9 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        blurRadius: 7,
-                        color: Colors.black.withOpacity(0.25),
-                      ),
+                          blurRadius: 7, color: Colors.black.withOpacity(0.25))
                     ],
                   ),
                   margin: EdgeInsets.symmetric(vertical: 18, horizontal: 13),
@@ -121,7 +128,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text("Identitas Diri"),
                       SizedBox(height: 15),
                       Text(
-                        "Nama Lengkap",
+                        "Name Lengkap",
                         style: TextStyle(
                           color: R.colors.greySubtitleHome,
                           fontSize: 12,
@@ -130,9 +137,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         user!.userName!,
                         style: TextStyle(
+                          // color: R.colors.greySubtitleHome,
                           fontSize: 13,
                         ),
                       ),
+                      SizedBox(height: 15),
                       Text(
                         "Email",
                         style: TextStyle(
@@ -143,9 +152,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         user!.userEmail!,
                         style: TextStyle(
+                          // color: R.colors.greySubtitleHome,
                           fontSize: 13,
                         ),
                       ),
+                      SizedBox(height: 15),
                       Text(
                         "Jenis Kelamin",
                         style: TextStyle(
@@ -156,9 +167,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         user!.userGender!,
                         style: TextStyle(
+                          // color: R.colors.greySubtitleHome,
                           fontSize: 13,
                         ),
                       ),
+                      SizedBox(height: 15),
                       Text(
                         "Kelas",
                         style: TextStyle(
@@ -167,11 +180,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       Text(
-                        user!.jenjang!,
+                        user?.jenjang ?? "Not Set",
                         style: TextStyle(
+                          // color: R.colors.greySubtitleHome,
                           fontSize: 13,
                         ),
                       ),
+                      SizedBox(height: 15),
                       Text(
                         "Asal Sekolah",
                         style: TextStyle(
@@ -182,6 +197,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         user!.userAsalSekolah!,
                         style: TextStyle(
+                          // color: R.colors.greySubtitleHome,
                           fontSize: 13,
                         ),
                       ),
@@ -189,9 +205,16 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    GoogleSignIn().signOut();
-                    FirebaseAuth.instance.signOut();
+                  onTap: () async {
+                    if (kIsWeb) {
+                      await GoogleSignIn(
+                              clientId:
+                                  "604293972193-n678jbsfgjp9416d8nnibndjtumviia8.apps.googleusercontent.com")
+                          .signOut();
+                    } else {
+                      await GoogleSignIn().signOut();
+                    }
+                    await FirebaseAuth.instance.signOut();
                     Navigator.of(context).pushNamedAndRemoveUntil(
                         LoginPage.route, (route) => false);
                   },
@@ -203,9 +226,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          blurRadius: 7,
-                          color: Colors.black.withOpacity(0.25),
-                        ),
+                            blurRadius: 7,
+                            color: Colors.black.withOpacity(0.25))
                       ],
                     ),
                     child: Row(children: [
@@ -218,11 +240,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         "Keluar",
                         style: TextStyle(
                           color: Colors.red,
+                          // fontSize: 12,
                         ),
                       ),
                     ]),
                   ),
-                ),
+                )
               ],
             ),
     );

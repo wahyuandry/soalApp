@@ -32,7 +32,6 @@ class UserData {
   String? jenjang;
   String? userGender;
   String? userStatus;
-  String? kelas;
 
   UserData(
       {this.iduser,
@@ -43,8 +42,7 @@ class UserData {
       this.dateCreate,
       this.jenjang,
       this.userGender,
-      this.userStatus,
-      this.kelas});
+      this.userStatus});
 
   UserData.fromJson(Map<String, dynamic> json) {
     iduser = json['iduser'];
@@ -56,7 +54,6 @@ class UserData {
     jenjang = json['jenjang'];
     userGender = json['user_gender'];
     userStatus = json['user_status'];
-    kelas = json['kelas'];
   }
 
   Map<String, dynamic> toJson() {
@@ -70,7 +67,6 @@ class UserData {
     data['jenjang'] = this.jenjang;
     data['user_gender'] = this.userGender;
     data['user_status'] = this.userStatus;
-    data['kelas'] = this.kelas;
     return data;
   }
 }

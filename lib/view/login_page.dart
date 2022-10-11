@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -21,21 +22,32 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   Future<UserCredential> signInWithGoogle() async {
-    // Trigger the authentication flow
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    if (kIsWeb) {
+      GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-    // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+      googleProvider
+          .addScope('https://www.googleapis.com/auth/contacts.readonly');
+      googleProvider.setCustomParameters({'login_hint': 'user@example.com'});
 
-    // Create a new credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
+      // Once signed in, return the UserCredential
+      return await FirebaseAuth.instance.signInWithPopup(googleProvider);
+    } else {
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-    // Once signed in, return the UserCredential
-    return await FirebaseAuth.instance.signInWithCredential(credential);
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
+
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
+
+      // Once signed in, return the UserCredential
+      return await FirebaseAuth.instance.signInWithCredential(credential);
+    }
   }
 
   @override
@@ -43,14 +55,14 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Color(0xfff3f7f8),
       body: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(25.0),
         child: Column(
           children: [
             Align(
               alignment: Alignment.topLeft,
               child: Text(
                 R.strings.login,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
@@ -70,8 +82,8 @@ class _LoginPageState extends State<LoginPage> {
               R.strings.loginDescription,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins().copyWith(
-                fontSize: 14,
                 fontWeight: FontWeight.w500,
+                fontSize: 14,
                 color: R.colors.greySubtitle,
               ),
             ),
@@ -93,12 +105,10 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   }
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Gagal Masuk"),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text("Gagal Masuk"),
+                    duration: Duration(seconds: 2),
+                  ));
                 }
               },
               backgroundColor: Colors.white,
@@ -119,26 +129,10 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
             ),
-            ButtonLogin(
-              onTap: () {},
-              backgroundColor: Colors.black,
-              borderColor: Colors.black,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(R.assets.icApple),
-                  SizedBox(width: 15),
-                  Text(
-                    R.strings.loginWithApple,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // GridView.count(
+            //   shrinkWrap: true,
+            //   physics: NeverScrollableScrollPhysics(),
+            //   gridDelegate: gridDelegate, crossAxisCount: null,),
           ],
         ),
       ),
@@ -155,7 +149,6 @@ class ButtonLogin extends StatelessWidget {
     required this.onTap,
     this.radius,
   }) : super(key: key);
-
   final double? radius;
   final Color backgroundColor;
   final Widget child;
@@ -165,18 +158,19 @@ class ButtonLogin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            primary: backgroundColor,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(radius ?? 25),
-              side: BorderSide(
-                color: borderColor,
-              ),
+          primary: backgroundColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radius ?? 25),
+            side: BorderSide(
+              color: borderColor,
             ),
-            fixedSize: Size(MediaQuery.of(context).size.width * 0.8, 50)),
+          ),
+          fixedSize: Size(MediaQuery.of(context).size.width * 0.8, 50),
+        ),
         onPressed: onTap,
         child: child,
       ),

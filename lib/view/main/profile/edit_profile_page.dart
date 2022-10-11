@@ -1,63 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:latihan_soal/constants/r.dart';
+import 'package:latihan_soal/helpers/preference_helper.dart';
 import 'package:latihan_soal/helpers/user_email.dart';
 import 'package:latihan_soal/models/network_response.dart';
 import 'package:latihan_soal/models/user_by_email.dart';
 import 'package:latihan_soal/repository/auth_api.dart';
+import 'package:latihan_soal/view/login_page.dart';
 import 'package:latihan_soal/view/main_page.dart';
-
-import '../../../helpers/preference_helper.dart';
-import '../../login_page.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({Key? key}) : super(key: key);
   static String route = "register_page";
-
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
-enum Gender { lakilaki, perempuan }
+enum Gender { lakiLaki, perempuan }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  String gender = "Laki-Laki";
   List<String> classSlta = ["10", "11", "12"];
-  String selectedClass = "10";
 
+  String gender = "Laki-laki";
+  String selectedClass = "10";
   final emailController = TextEditingController();
-  final schoolController = TextEditingController();
+  final schoolNameController = TextEditingController();
   final fullNameController = TextEditingController();
 
   onTapGender(Gender genderInput) {
-    if (genderInput == Gender.lakilaki) {
-      gender = "Laki-Laki";
+    if (genderInput == Gender.lakiLaki) {
+      gender = "Laki-laki";
     } else {
       gender = "Perempuan";
     }
-
     setState(() {});
   }
 
-  initDataUser() {
+  initDataUSer() async {
     emailController.text = UserEmail.getUserEmail()!;
-    fullNameController.text = UserEmail.getUserDisplayName()!;
+    // fullNameController.text = UserEmail.getUserDisplayName()!;
+    final dataUser = await PreferenceHelper().getUserData();
+    fullNameController.text = dataUser!.userName!;
+    schoolNameController.text = dataUser.userAsalSekolah!;
+    gender = dataUser.userGender!;
+    // selectedClass = dataUser.jenjang!;
+    print(dataUser.userGender!);
+
     setState(() {});
   }
 
   @override
   void initState() {
-    initDataUser();
+    super.initState();
+    initDataUSer();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // backgroundColor: Color(0xfff0f3f5),
       appBar: AppBar(
         // shape: RoundedRectangleBorder(
         //     borderRadius: BorderRadius.only(
-        //   bottomLeft: Radius.circular(15.0),
-        //   bottomRight: Radius.circular(25.0),
-        // )),
+        //         bottomLeft: Radius.circular(25.0),
+        //         bottomRight: Radius.circular(25.0))),
         elevation: 0,
         // backgroundColor: Colors.white,
         centerTitle: true,
@@ -65,10 +70,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         title: Text(
           "Edit Akun",
           style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
+              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
         ),
       ),
       bottomNavigationBar: SafeArea(
@@ -80,18 +82,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
               final json = {
                 "email": emailController.text,
                 "nama_lengkap": fullNameController.text,
-                "nama_sekolah": schoolController.text,
+                "nama_sekolah": schoolNameController.text,
                 "kelas": selectedClass,
                 "gender": gender,
                 "foto": UserEmail.getUserPhotoUrl(),
               };
-              final result = await AuthApi().postRegister(json);
+              print(json);
+              final result = await AuthApi().postUpdateUSer(json);
               if (result.status == Status.success) {
                 final registerResult = UserByEmail.fromJson(result.data!);
                 if (registerResult.status == 1) {
                   await PreferenceHelper().setUserData(registerResult.data!);
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                      MainPage.route, (context) => false);
+                  Navigator.pop(context, true);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -112,7 +114,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             child: Text(
               R.strings.perbaharuiAkun,
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -128,21 +130,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
             children: [
               EditProfileTextField(
                 controller: emailController,
-                hinttext: 'Email Anda',
-                title: 'Email',
+                hintText: 'Email Anda',
+                title: "Email",
                 enabled: false,
               ),
               EditProfileTextField(
-                hinttext: 'Nama Lengkap Anda',
-                title: 'Nama Lengkap',
+                hintText: 'Nama Lengkap Anda',
+                title: "Nama Lengkap",
                 controller: fullNameController,
               ),
+              SizedBox(height: 5),
               Text(
                 "Jenis Kelamin",
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: R.colors.greySubtitle),
               ),
               SizedBox(height: 5),
               Row(
@@ -153,25 +156,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
-                          primary: gender == "Laki-Laki"
-                              ? R.colors.primary
-                              : Colors.white,
+                          primary:
+                              gender.toLowerCase() == "Laki-laki".toLowerCase()
+                                  ? R.colors.primary
+                                  : Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              width: 1,
-                              color: R.colors.greyBorder,
-                            ),
+                                width: 1, color: R.colors.greyBorder),
                           ),
                         ),
                         onPressed: () {
-                          onTapGender(Gender.lakilaki);
+                          onTapGender(Gender.lakiLaki);
                         },
                         child: Text(
-                          "Laki-Laki",
+                          "Laki-laki",
                           style: TextStyle(
                             fontSize: 14,
-                            color: gender == "Laki-Laki"
+                            color: gender.toLowerCase() ==
+                                    "Laki-laki".toLowerCase()
                                 ? Colors.white
                                 : Color(0xff282828),
                           ),
@@ -191,9 +194,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(
-                              width: 1,
-                              color: R.colors.greyBorder,
-                            ),
+                                width: 1, color: R.colors.greyBorder),
                           ),
                         ),
                         onPressed: () {
@@ -217,9 +218,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
               Text(
                 "Kelas",
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: R.colors.greySubtitle),
               ),
               SizedBox(height: 5),
               Container(
@@ -228,9 +229,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   color: Colors.white,
-                  border: Border.all(
-                    color: R.colors.greyBorder,
-                  ),
+                  border: Border.all(color: R.colors.greyBorder),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -243,7 +242,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             ),
                           )
                           .toList(),
-                      onChanged: (val) {
+                      onChanged: (String? val) {
                         selectedClass = val!;
                         setState(() {});
                       }),
@@ -251,11 +250,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               SizedBox(height: 5),
               EditProfileTextField(
-                hinttext: 'Nama Sekolah',
-                title: 'Nama Sekolah',
-                controller: schoolController,
+                hintText: 'Nama Sekolah',
+                title: "Nama Sekolah",
+                controller: schoolNameController,
               ),
-              // Spacer(), tidak bisa pakai spacer jika pakai SingleChildScrollView
+              // Spacer(),
             ],
           ),
         ),
@@ -268,12 +267,12 @@ class EditProfileTextField extends StatelessWidget {
   const EditProfileTextField({
     Key? key,
     required this.title,
-    required this.hinttext,
+    required this.hintText,
     this.controller,
     this.enabled = true,
   }) : super(key: key);
   final String title;
-  final String hinttext;
+  final String hintText;
   final bool enabled;
   final TextEditingController? controller;
 
@@ -287,17 +286,17 @@ class EditProfileTextField extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: R.colors.greySubtitle),
           ),
           SizedBox(height: 5),
           TextField(
             enabled: enabled,
             controller: controller,
             decoration: InputDecoration(
-                // border: InputBorder.none, //biar border hilang
-                hintText: hinttext,
+                // border: InputBorder.none,
+                hintText: hintText,
                 hintStyle: TextStyle(
                   color: R.colors.greyHintText,
                 )),
